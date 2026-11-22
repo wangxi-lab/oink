@@ -41,12 +41,10 @@ it.each((['before', 'after'] as const).flatMap(order => [true, false].map(receip
   function App() {
     const pairing = usePairing();
     const props = { platform: 'win', pairing, perms: {}, onGrant() {}, container: null, onSkip() {}, onFinish() {}, leaving: false, connected: false, version: '0.3.0',
-      preferences: { ready: true, report: {}, chooseReport: async () => {}, saveLocal: async () => {} } } as unknown as OnboardingProps;
+      preferences: { ready: true, report: null, chooseReport: async () => {}, saveLocal: async () => {} } } as unknown as OnboardingProps;
     return <OinkProvider><Profiler id="onboarding" onRender={() => commits.push({ list: !!document.querySelector('.ob-devs'), failure: !!document.querySelector('.pair__failed') })}><Onboarding {...props}/></Profiler></OinkProvider>;
   }
   render(<App/>);
-  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-  await screen.findByText('Help us improve Oink');
   fireEvent.click(screen.getByRole('button', { name: 'Next' }));
   await screen.findByText('Connect your other devices');
   await waitFor(() => expect(document.querySelector('.ob-main')?.hasAttribute('inert')).toBe(false));

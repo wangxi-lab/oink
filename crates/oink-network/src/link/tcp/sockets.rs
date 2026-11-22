@@ -72,7 +72,10 @@ impl Core {
                     _ = wait_closed(&mut stopped) => break,
                     result = socket.accept() => result,
                 };
-                let Ok((socket, _)) = accepted else { break };
+                let Ok((socket, peer)) = accepted else { break };
+                if !crate::lan::allows(peer) {
+                    continue;
+                }
                 let Ok(permit) = permits.clone().try_acquire_owned() else { continue };
                 let core = owner.clone();
                 owner.spawn_background(async move {
@@ -118,7 +121,8 @@ impl Core {
                     .unwrap_or_else(|| "no TCP listener".into()),
             )
         })?;
-        addr.set_port(port); // Preserve IPv6 link-local scope from the authenticated neighbor address.
+        addr.set_port(port);
+        crate::lan::require(addr)?;
         let dialer = if addr.is_ipv6() {
             tokio::net::TcpSocket::new_v6()?
         } else {

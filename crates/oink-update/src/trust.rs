@@ -29,10 +29,13 @@ struct Mac {
     public_key: Option<String>,
 }
 const CONFIG: &[u8] = include_bytes!("../../../packaging/update-trust.json");
+// Upstream signing metadata is also used by package validation and fixtures.
+// It cannot authorize an online updater in this distribution.
+const ONLINE_UPDATES_ENABLED: bool = false;
 
 /// Release qualification is independent of whether Sparkle was linked or a key installed.
 pub fn mac_enabled() -> bool {
-    mac_configured(CONFIG).is_ok()
+    ONLINE_UPDATES_ENABLED && mac_configured(CONFIG).is_ok()
 }
 fn mac_configured(raw: &[u8]) -> Result<(), Error> {
     let config: Config = crate::feed::strict_json(raw)?;
@@ -54,7 +57,11 @@ pub fn sources() -> Result<Vec<String>, Error> {
         Ok(vec![crate::feed::feed_origin().to_owned()])
     }
     #[cfg(not(feature = "test-feed"))]
-    configured_sources(CONFIG)
+    if ONLINE_UPDATES_ENABLED {
+        configured_sources(CONFIG)
+    } else {
+        Err(Error::NotConfigured)
+    }
 }
 #[cfg_attr(feature = "test-feed", allow(dead_code))]
 fn configured_sources(raw: &[u8]) -> Result<Vec<String>, Error> {
@@ -80,7 +87,9 @@ pub fn mac_compiled() -> Result<MacRoots, Error> {
     }
     #[cfg(not(feature = "test-feed"))]
     {
-        mac_configured(CONFIG)?;
+        if !mac_enabled() {
+            return Err(Error::NotConfigured);
+        }
         let config: Config = crate::feed::strict_json(CONFIG)?;
         let key = STANDARD
             .decode(config.mac.public_key.ok_or(Error::NotConfigured)?)
@@ -121,7 +130,11 @@ pub fn compiled() -> Result<Roots, Error> {
         })
     }
     #[cfg(not(feature = "test-feed"))]
-    windows_configured(CONFIG)
+    if ONLINE_UPDATES_ENABLED {
+        windows_configured(CONFIG)
+    } else {
+        Err(Error::NotConfigured)
+    }
 }
 #[cfg_attr(all(feature = "test-feed", not(test)), allow(dead_code))]
 fn windows_configured(raw: &[u8]) -> Result<Roots, Error> {
@@ -198,6 +211,15 @@ pub fn health_ready(ready: bool) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(feature = "test-feed"))]
+    #[test]
+    fn production_build_has_no_update_feed_authority() {
+        assert_eq!(sources(), Err(Error::NotConfigured));
+        assert!(!mac_enabled());
+        assert!(matches!(mac_compiled(), Err(Error::NotConfigured)));
+        assert!(matches!(compiled(), Err(Error::NotConfigured)));
+    }
+
     #[test]
     fn sources_are_ordered_https_origins() {
         assert_eq!(

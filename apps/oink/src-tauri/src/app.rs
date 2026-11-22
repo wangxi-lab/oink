@@ -391,7 +391,6 @@ pub fn run() {
             frontend_error,
             frontend_notice,
             api_call,
-            crate::sponsor::shell_sponsor_list,
             crate::live_views::live_views,
             crate::shell::shell_open,
             crate::shell::shell_ready,
@@ -402,7 +401,6 @@ pub fn run() {
             crate::shell::shell_show_panel,
             crate::commands::read_attribution,
             crate::commands::shell_alignment_haptic,
-            crate::commands::shell_open_url,
             crate::commands::shell_quit,
             #[cfg(target_os = "macos")]
             crate::commands::shell_uninstall,
@@ -412,7 +410,6 @@ pub fn run() {
             crate::native_menu::shell_set_language
         ])
         .setup(|app| {
-            app.manage(crate::sponsor::SponsorList::start());
             #[cfg(target_os = "macos")]
             {
                 crate::native_menu::install(app.handle(), oink_agent::config::UiLanguage::Auto)?;

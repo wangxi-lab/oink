@@ -1779,7 +1779,7 @@ impl AgentApi for Node {
         })
     }
     fn microphone_plugin_status(&self) -> ApiResult<crate::microphone_plugin::MicrophonePluginStatus> {
-        Ok(if self.inner.native_services {
+        Ok(if !cfg!(windows) && self.inner.native_services {
             crate::microphone_plugin::status()
         } else {
             crate::microphone_plugin::MicrophonePluginStatus::default()
@@ -1789,7 +1789,8 @@ impl AgentApi for Node {
         &self,
         action: crate::microphone_plugin::Action,
     ) -> ApiResult<crate::microphone_plugin::MicrophonePluginStatus> {
-        if !self.inner.native_services {
+        // The vendor installer delegates certificate and driver checks to Windows.
+        if cfg!(windows) || !self.inner.native_services {
             return Err(ApiError::Unsupported {
                 message: "Native installation unavailable".into(),
             });

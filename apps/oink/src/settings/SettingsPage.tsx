@@ -109,6 +109,8 @@ export function SettingsPage({ open, platform, api, capsIme, query, jump, onActi
     const arrangement = agentState.layoutProfiles?.devices.find(d => d.device === agentState.overview?.this_device.id);
     const [syncPending, setSyncPending] = useState(false);
     const applicable = (item: ItemMeta) => (item.id !== 'perm-network' || perms.network !== 'not_required')
+        && item.id !== 'hideSponsor'
+        && (item.id !== 'crashReports' || api.report?.configured === true)
         && (!['syncSystemArrangement', 'disableHiddenDisplays'].includes(item.id) || arrangement?.availability !== 'unsupported');
     const contactsAvailable = agentState.input?.contacts_injection_available === true;
     const setSync = async (enabled: boolean, label: string, hiddenDisplays = false) => {
@@ -322,7 +324,6 @@ export function SettingsPage({ open, platform, api, capsIme, query, jump, onActi
             };
             case 'nativeMultifinger': return { node: <Switch aria-label={label} checked={prefs.nativeMultifinger} onChange={toggle('nativeMultifinger',label)} disabled={!contactsAvailable || !prefs.touchpadInject}/> };
             case 'macScrollFeel': return { node: <Switch aria-label={label} checked={prefs.macScrollFeel} onChange={toggle('macScrollFeel',label)} disabled={!contactsAvailable || !prefs.touchpadInject}/> };
-            case 'hideSponsor': return { node: <Switch aria-label={label} checked={api.presentation?.hide_sponsor ?? false} onChange={v => api.savePresentation({ hide_sponsor: v })}/> };
             case 'autoUnlock': return {
                 desc: platform === 'win' && autoUnlock?.enabled && autoUnlock.windows_hello_only
                     ? tr('自动解锁不可用：请在系统设置中关闭“仅允许 Windows Hello 登录”')
@@ -367,7 +368,7 @@ export function SettingsPage({ open, platform, api, capsIme, query, jump, onActi
             case 'version':
                 return {
                     desc: <span className="setp__mono">v{version}</span>,
-                    node: <UpdateCheck status={agentState.update} open={open}/>,
+                    node: manualUpdates(agentState.update) ? null : <UpdateCheck status={agentState.update} open={open}/>,
                 };
             case 'updates': return { desc: manualUpdates(agentState.update) ? tr('此版本需要手动下载并安装更新。') : undefined, node: <UpdatePreferences status={agentState.update} label={label}/> };
             case 'updateChannel': return { node: <UpdateChannel status={agentState.update} label={label}/> };

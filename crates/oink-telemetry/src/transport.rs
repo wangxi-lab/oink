@@ -1,14 +1,20 @@
 //! The agent owns this transport. No automatic retry, redirects, SDK or cookies.
 use crate::{
+    Error, Region, Result,
     store::{Delivery, Submission},
-    *,
 };
+#[cfg(test)]
+use crate::{POLICY_VERSION, now, wire};
+#[cfg(test)]
 use reqwest::{Client, Url};
+#[cfg(test)]
 use std::time::Duration;
 
 #[derive(Clone)]
 pub struct Endpoint {
+    #[cfg(test)]
     url: Url,
+    #[cfg(test)]
     public_key: String,
     pub region: Region,
 }
@@ -20,7 +26,8 @@ impl std::fmt::Debug for Endpoint {
     }
 }
 impl Endpoint {
-    pub fn parse(dsn: &str, region: Region, policy: u16) -> Result<Self> {
+    #[cfg(test)]
+    fn parse(dsn: &str, region: Region, policy: u16) -> Result<Self> {
         if policy != POLICY_VERSION || dsn.len() > 512 {
             return Err(Error::Invalid);
         }
@@ -55,25 +62,39 @@ impl Endpoint {
             region,
         })
     }
-    /// Build configuration only. No runtime environment DSN or remote config.
+    /// This distribution never configures off-device reporting.
     pub fn compiled() -> Option<Self> {
-        let dsn = option_env!("OINK_REPORT_DSN")?;
-        let region = match option_env!("OINK_REPORT_REGION")? {
-            "eu" => Region::Eu,
-            "us" => Region::Us,
-            _ => return None,
-        };
-        Self::parse(dsn, region, POLICY_VERSION).ok()
+        None
     }
 }
+
+#[cfg(not(test))]
+#[derive(Debug)]
+pub struct Https;
+#[cfg(not(test))]
+impl Https {
+    pub fn new(_: Endpoint) -> Result<Self> {
+        Err(Error::Disabled)
+    }
+
+    pub async fn send(&self, _: &Submission) -> Delivery {
+        Delivery::Drop
+    }
+}
+#[cfg(test)]
 #[derive(Debug)]
 pub struct Https {
     client: Client,
     endpoint: Endpoint,
 }
+#[cfg(test)]
 impl Https {
     pub fn new(endpoint: Endpoint) -> Result<Self> {
+        if endpoint.url.host_str() != Some("127.0.0.1") {
+            return Err(Error::Disabled);
+        }
         let client = Client::builder()
+            .no_proxy()
             .retry(reqwest::retry::never())
             .redirect(reqwest::redirect::Policy::none())
             .connect_timeout(Duration::from_secs(5))
@@ -130,6 +151,7 @@ impl Https {
         }
     }
 }
+#[cfg(test)]
 fn limits(header: Option<&str>, retry: Option<&str>, status: u16, now: u64) -> Option<Delivery> {
     let mut errors_until = 0;
     let mut transactions_until = 0;
@@ -177,6 +199,7 @@ fn limits(header: Option<&str>, retry: Option<&str>, status: u16, now: u64) -> O
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::*;
     #[test]
     fn endpoint_requires_build_region_and_never_accepts_redirect_recipient() {
         let key = "a".repeat(32);
@@ -278,6 +301,7 @@ mod tests {
 #[cfg(test)]
 mod consent_network_tests {
     use super::*;
+    use crate::{model::*, store};
     #[tokio::test]
     async fn default_off_and_revoked_queues_make_no_connection_to_local_mock() {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();

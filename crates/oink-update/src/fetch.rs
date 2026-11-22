@@ -36,36 +36,33 @@ pub fn get(url: &str, limit: u64, package: bool, progress: &mut dyn FnMut(u64, u
 }
 /// As [`get`], but the transfer is abandoned (as `Error::Network`) as soon as
 /// `progress` returns false.
-#[cfg(feature = "http")]
+#[cfg(all(feature = "http", not(feature = "test-feed")))]
+pub fn get_until(_: &str, _: u64, _: bool, _: &mut dyn FnMut(u64, u64) -> bool) -> Result<Vec<u8>, Error> {
+    Err(Error::NotConfigured)
+}
+
+#[cfg(all(feature = "http", feature = "test-feed"))]
 pub fn get_until(
     url: &str,
     limit: u64,
-    package: bool,
+    _package: bool,
     progress: &mut dyn FnMut(u64, u64) -> bool,
 ) -> Result<Vec<u8>, Error> {
     use std::{io::Read, time::Duration};
-    let policy = if package {
-        reqwest::redirect::Policy::custom(|attempt| {
-            if crate::feed::validate_redirect(attempt.url().as_str(), attempt.previous().len()).is_ok() {
-                attempt.follow()
-            } else {
-                attempt.stop()
-            }
-        })
-    } else {
-        reqwest::redirect::Policy::none()
-    };
-    // The client timeout bounds connecting and each read, not the whole body,
-    // so a slow but live download is never cut off.
+    let origin = url::Url::parse(crate::feed::feed_origin()).map_err(|_| Error::Network)?;
+    let target = url::Url::parse(url).map_err(|_| Error::Network)?;
+    if target.origin() != origin.origin() || !target.username().is_empty() || target.password().is_some() {
+        return Err(Error::Network);
+    }
     let client = reqwest::blocking::Client::builder()
-        .https_only(!cfg!(feature = "test-feed"))
-        .redirect(policy)
+        .no_proxy()
+        .redirect(reqwest::redirect::Policy::none())
         .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(60))
         .user_agent("Oink-updater/2")
         .build()
         .map_err(|_| Error::Network)?;
-    let response = client.get(url).send().map_err(|_| Error::Network)?;
+    let response = client.get(target).send().map_err(|_| Error::Network)?;
     if response.status() != reqwest::StatusCode::OK || response.content_length().is_some_and(|n| n > limit) {
         return Err(Error::Network);
     }
@@ -92,6 +89,15 @@ pub fn get_until(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(all(feature = "http", not(feature = "test-feed")))]
+    #[test]
+    fn production_transport_rejects_even_a_loopback_url_before_progress() {
+        let result = get_until("http://127.0.0.1:9", 1024, false, &mut |_, _| {
+            panic!("disabled transport must not report progress")
+        });
+        assert_eq!(result, Err(Error::NotConfigured));
+    }
+
     fn sources() -> Vec<String> {
         vec![
             "https://a.example".into(),

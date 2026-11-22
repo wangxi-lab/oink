@@ -44,7 +44,7 @@ impl Default for NetworkConfig {
             port: DEFAULT_PORT,
             bulk_port: DEFAULT_PORT + 2,
             bulk_pacing: true,
-            mdns: MdnsMode::System,
+            mdns: MdnsMode::Off,
             beacon: true,
             beacon_ports: vec![DEFAULT_PORT + 1],
         }

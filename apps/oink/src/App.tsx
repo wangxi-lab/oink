@@ -39,7 +39,6 @@ import { QuitDialog } from './window/QuitDialog';
 import { AboutWindow } from './window/AboutWindow';
 import { UpgradeButton, UpgradeDialog } from './window/Upgrade';
 import { PackageDropArea, usePackageDrag } from './window/PackageDrop';
-import { PromoArea } from './window/PromoArea';
 import { StatusNotices } from './window/StatusNotices';
 import { observePanel } from './window/panel';
 import { revealWhenReady } from './window/ready';
@@ -708,7 +707,7 @@ export function App() {
                     else if (!remotePaused) {
                         setNavOpen(true);
                         setNavMode(navMode === action ? 'devices' : action);
-                    } }} version={state.boot?.version ?? version} sideExtra={navMode === 'add' ? <SelfInfo container={winEl}/> : null} titleEnd={<><UpgradeButton/><PromoArea sponsor={!prefs.presentation.hide_sponsor} container={winEl}/></>} titleCenter={self?.paused ? <span className="win__paused"><PauseGlyph/>{tr('共享已暂停')}</span> : null} navBack={!remotePaused && platform === 'win' && navMode !== 'devices' ? { title: navMode === 'add' ? tr('添加设备') : tr('设置'), label: tr('返回设备列表'), onBack: () => setNavMode('devices') } : null} nav={collapsed => remotePaused ? null : <>
+                    } }} version={state.boot?.version ?? version} sideExtra={navMode === 'add' ? <SelfInfo container={winEl}/> : null} titleEnd={<UpgradeButton/>} titleCenter={self?.paused ? <span className="win__paused"><PauseGlyph/>{tr('共享已暂停')}</span> : null} navBack={!remotePaused && platform === 'win' && navMode !== 'devices' ? { title: navMode === 'add' ? tr('添加设备') : tr('设置'), label: tr('返回设备列表'), onBack: () => setNavMode('devices') } : null} nav={collapsed => remotePaused ? null : <>
           <div className="nav-stack">
             {platform === 'win' && <RequestsGroup pairing={pairing} collapsed={collapsed} onExpand={() => setNavOpen(true)} hidden={navMode === 'settings'}/>}
             <div className="nav-view" key={navMode} data-view={navMode} data-anim={navSwitched ? '' : undefined}>{platform === 'mac' && <><AddHead open={navMode !== 'devices'} title={navMode === 'add' ? tr('添加设备') : tr('设置')} onBack={() => setNavMode('devices')}/><RequestsGroup pairing={pairing} collapsed={collapsed} onExpand={() => setNavOpen(true)} hidden={navMode === 'settings'}/></>}{navMode === 'add' ? <AddPanel pairing={pairing}/> : navMode === 'settings' ? <SettingsNav platform={platform} query={query} onQuery={setQuery} active={section} onJump={id => setJump({ section: id, n: Date.now() })}/> : <DeviceList onGrantPermission={grantDevicePermission} onGrantAccessibility={() => { void accessibilityGrant.grant('accessibility'); }} devices={devices} selectedId={selectedDevice} onSelect={id => { setNavOpen(true); selectDevice(id); }} onToggle={toggle} onPause={menu.onPause} onSpeaker={menu.onSpeaker} onMicrophone={microphone} hiddenScreens={hiddenScreens} collapsed={collapsed} now={Date.now()} onReorder={(id, placement) => api.moveDeviceOrder(id, placement)}/>}</div>

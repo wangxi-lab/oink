@@ -271,12 +271,34 @@ fn close_panel_on_main(app: &AppHandle) {
 fn builder(app: &AppHandle, view: View) -> WebviewWindowBuilder<'_, tauri::Wry, AppHandle> {
     // App URLs preserve the query in both devUrl and the embedded asset protocol.
     let path = format!("index.html?view={}", view.label());
+    let dev_origin = if cfg!(debug_assertions) {
+        app.config().build.dev_url.as_ref().map(|url| url.origin())
+    } else {
+        None
+    };
     let builder = WebviewWindowBuilder::new(app, view.label(), WebviewUrl::App(path.into()))
-        .title("Oink")
+        .title("Oink LAN Only")
+        .on_navigation(move |url| {
+            let local_app = matches!(
+                (url.scheme(), url.host_str()),
+                ("tauri", Some("localhost")) | ("http" | "https", Some("tauri.localhost"))
+            ) && url.port().is_none()
+                && url.username().is_empty()
+                && url.password().is_none();
+            local_app || dev_origin.as_ref().is_some_and(|origin| *origin == url.origin())
+        })
+        .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
         .initialization_script(crate::app::ERROR_REPORTER)
         .initialization_script(crate::system_locale::initialization_script());
     #[cfg(windows)]
-    let builder = builder.data_directory(oink_foundation::paths::data_dir().join("WebView2"));
+    let builder = builder
+        // Wry uses these arguments in place of its defaults, so retain its
+        // default WebView2 feature flags for the packaged local pages.
+        .additional_browser_args(concat!(
+            "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection ",
+            "--disable-background-networking --disable-component-update --disable-sync --no-pings",
+        ))
+        .data_directory(oink_foundation::paths::data_dir().join("WebView2"));
     builder
 }
 

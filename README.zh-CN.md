@@ -1,3 +1,5 @@
+> **Oink LAN Only** 是上游 Oink 的局域网改版，发布目标为 Windows x64。保留局域网键鼠、剪贴板和文件共享，关闭在线更新、崩溃上报和赞助下载。见 [隐私说明](PRIVACY.md) 和 [安全审查](SECURITY-REVIEW.md)。
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-zh-CN-dark.png">

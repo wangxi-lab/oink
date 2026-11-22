@@ -542,36 +542,3 @@ fn genuine_dmg_downloads_verifies_and_stages_like_a_dropped_package() {
     drop(staged);
     super::super::local_mac::wait_for_detach();
 }
-
-/// The production transport and compiled trust against the real sources.
-#[cfg(target_os = "macos")]
-#[test]
-#[ignore = "network: contacts the production update origin"]
-fn production_sources_answer_over_https_with_the_compiled_trust() {
-    let appcast = Https
-        .catalog("https://updates.oink.hachiwii.com/mac/v1/mac-2026-01/stable/appcast.xml")
-        .unwrap();
-    assert!(appcast.starts_with(b"<?xml"));
-    let roots = oink_update::trust::mac_compiled().unwrap();
-    let sources = oink_update::trust::sources().unwrap();
-    let feed = Feed {
-        sources: &sources,
-        trust: roots.feed(),
-        architecture: architecture(),
-        os: os_version().unwrap(),
-    };
-    let seen = Watermark::default();
-    let query = Query {
-        channel: Channel::Stable,
-        seen: &seen,
-        now: now(),
-        installed_build: 1,
-        skipped_build: None,
-        check: Check::Manual,
-    };
-    // Until the first v2 publication the catalog path is absent (HTTP 404).
-    match evaluate(&feed, &query, &mut Https) {
-        Ok((watermark, plan)) => eprintln!("v2 catalog sequence {}: {plan:?}", watermark.sequence),
-        Err(error) => assert_eq!(error, Error::Network),
-    }
-}

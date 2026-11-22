@@ -169,7 +169,7 @@ impl LinkLayer {
     /// for C0 greeting/negotiation. The config owner exposes a prepared result only
     /// after C0 completes; the TLS identity returned here is never a pairing request.
     pub async fn probe_address(&self, address: SocketAddr) -> Result<DeviceId, AddressProbeError> {
-        if !address.is_ipv4() || address.port() == 0 || address.ip().is_unspecified() || address.ip().is_multicast() {
+        if !address.is_ipv4() || !crate::lan::allows(address) {
             return Err(AddressProbeError::InvalidAddress);
         }
         if self.0.stopped.load(std::sync::atomic::Ordering::Acquire) {
@@ -191,6 +191,10 @@ impl LinkLayer {
         if candidates.iter().any(|addr| !addr.is_ipv4()) {
             return Err(DialRefused::InvalidAddress);
         }
+        let candidates = candidates
+            .into_iter()
+            .filter(|&addr| crate::lan::allows(addr))
+            .collect();
         self.reserve_dial(peer)?;
         self.0.send(handle::Command::Dial(peer, candidates, mode, origin));
         Ok(())

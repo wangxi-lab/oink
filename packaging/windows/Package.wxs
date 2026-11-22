@@ -112,17 +112,18 @@
           <!-- UiExe hosts the user backend in service mode; the SYSTEM input broker and
                recovery CLI own no LAN listeners. Keep this component/key path
                stable so the late major-upgrade uninstall retains its rules.
-               Scope=any also supports peers across LAN subnets/manual IP. -->
+               Preserve the rule names so an upgrade updates the existing
+               exceptions in place. Limit both rules to the local subnet. -->
           <fw:FirewallException Id="BackendUdpInbound" File="UiExe"
-                                Name="$(var.ProductName) - Discovery and QUIC (UDP)"
-                                Description="LAN discovery (mDNS/DNS-SD and beacons) and encrypted device links."
-                                Grouping="$(var.ProductName)" Protocol="udp" Profile="all"
-                                Scope="any" Outbound="no" Action="allow" Enabled="yes" IgnoreFailure="no" />
+                                Name="Oink - Discovery and QUIC (UDP)"
+                                Description="LAN discovery beacons and encrypted device links."
+                                Grouping="Oink" Protocol="udp" Profile="all"
+                                Scope="localSubnet" Outbound="no" Action="allow" Enabled="yes" IgnoreFailure="no" />
           <fw:FirewallException Id="BackendTcpInbound" File="UiExe"
-                                Name="$(var.ProductName) - Bulk transfer (TCP)"
+                                Name="Oink - Bulk transfer (TCP)"
                                 Description="Oink - Bulk transfer (TCP)"
-                                Grouping="$(var.ProductName)" Protocol="tcp" Profile="all"
-                                Scope="any" Outbound="no" Action="allow" Enabled="yes" IgnoreFailure="no" />
+                                Grouping="Oink" Protocol="tcp" Profile="all"
+                                Scope="localSubnet" Outbound="no" Action="allow" Enabled="yes" IgnoreFailure="no" />
         </Component>
         <Component Id="PasteMenu" Guid="*">
           <!-- The transparent light/dark marks are compiled into the signed

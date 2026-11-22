@@ -6,8 +6,6 @@ use tauri::{AppHandle, Manager};
 pub enum ShellError {
     InvalidAttributionPath,
     AttributionUnavailable,
-    InvalidUrl,
-    OpenUrlFailed,
     OpenFolderFailed,
     CacheUnavailable,
     QuitFailed,
@@ -91,22 +89,6 @@ fn open_external(target: &std::ffi::OsStr) -> Result<(), ()> {
         }
     }
     Ok(())
-}
-
-#[tauri::command]
-pub async fn shell_open_url(url: String) -> Result<(), ShellError> {
-    let parsed = tauri::Url::parse(&url).map_err(|_| ShellError::InvalidUrl)?;
-    if !matches!(parsed.scheme(), "http" | "https")
-        || parsed.host_str().is_none()
-        || !parsed.username().is_empty()
-        || parsed.password().is_some()
-    {
-        return Err(ShellError::InvalidUrl);
-    }
-    tauri::async_runtime::spawn_blocking(move || open_external(std::ffi::OsStr::new(parsed.as_str())))
-        .await
-        .map_err(|_| ShellError::OpenUrlFailed)?
-        .map_err(|_| ShellError::OpenUrlFailed)
 }
 
 pub async fn open_folder(path: std::path::PathBuf) -> Result<(), ShellError> {

@@ -30,7 +30,7 @@ function fixture(extras: Partial<OnboardingProps> = {}) {
     platform: 'win', pairing: { requests: [], nearby: [], dialog: { open: false, mode: 'manual', session: null, key: 0 }, actions, defaultPort: 47470 } as unknown as Pairing,
     perms: { accessibility: 'not_granted', input: 'not_granted', network: 'not_required', files: 'denied', audio: 'not_determined' },
     onGrant: vi.fn(), onOpenSettings: vi.fn(), container: null, onSkip: vi.fn(), onFinish: vi.fn(), leaving: false, connected: false, version: '0.1.0-beta.1',
-    preferences: { launchStatus: {state:'disabled',problem:null,configured:false}, confirmLaunchAtLogin: vi.fn().mockResolvedValue(undefined), ready: true, report: {}, chooseReport: vi.fn().mockResolvedValue(undefined), saveLocal: vi.fn().mockResolvedValue(undefined) } as unknown as PrefsApi,
+    preferences: { launchStatus: {state:'disabled',problem:null,configured:false}, confirmLaunchAtLogin: vi.fn().mockResolvedValue(undefined), ready: true, report: { configured: true }, chooseReport: vi.fn().mockResolvedValue(undefined), saveLocal: vi.fn().mockResolvedValue(undefined) } as unknown as PrefsApi,
     ...extras,
   };
   const view = (p = props) => <OinkProvider defaultAccent={DEFAULT_ACCENT.value} defaultMotion="reduced"><Onboarding {...p}/></OinkProvider>;
@@ -76,6 +76,16 @@ it('goes from welcome straight to crash reports on Windows, leaving launch at lo
   expect(screen.queryByRole('switch', { name: 'Launch at login' })).toBeNull();
   expect(document.querySelector('.ob')?.getAttribute('data-step')).toBe('telemetry');
   expect(props.preferences.confirmLaunchAtLogin).not.toHaveBeenCalled();
+});
+
+it('skips report consent in a build without reporting', async () => {
+  const { props, view } = fixture();
+  props.preferences.report = null;
+  render(view());
+  await next();
+  await screen.findByText('Connect your other devices');
+  expect(screen.queryByText('Help us improve Oink')).toBeNull();
+  expect(props.preferences.chooseReport).not.toHaveBeenCalled();
 });
 
 it('waits for consent persistence before continuing, and lets a failed save be retried', async () => {

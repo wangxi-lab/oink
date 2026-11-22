@@ -174,6 +174,11 @@ impl Node {
             _ => {}
         }
         if let Command::OpenLocal { path } = &command {
+            if cfg!(windows) {
+                // Windows packages are staged and installed by the user or IT.
+                // A drop can resolve to a mapped drive or cloud placeholder.
+                return Err(api_error(Error::NotConfigured));
+            }
             return local::open(self, path);
         }
         if lock(&self.inner.update).local_mode {

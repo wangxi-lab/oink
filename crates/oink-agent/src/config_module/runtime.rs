@@ -636,7 +636,7 @@ impl Owner {
                 beacon: config.beacon,
                 beacon_interval: Duration::from_secs(2),
                 beacon_ports: config.beacon_ports,
-                mdns: config.mdns,
+                mdns: oink_network::MdnsMode::Off,
             },
             self.advert.subscribe(),
             sightings,

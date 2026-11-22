@@ -18,6 +18,7 @@ pub mod group_merge;
 pub mod group_pake;
 pub mod group_state;
 pub mod identity;
+mod lan;
 pub mod link;
 pub mod negotiation;
 pub mod pair_journal;

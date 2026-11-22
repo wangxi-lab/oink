@@ -198,7 +198,6 @@ impl Discovery {
             }
         };
         let pending: Pending = Arc::default();
-        let extra_targets: Arc<Mutex<Vec<SocketAddr>>> = Arc::default();
         let (refresh_tx, refresh_rx) = mpsc::unbounded_channel();
 
         let mdns = match cfg.mdns {
@@ -219,17 +218,9 @@ impl Discovery {
                 .map(MdnsHandle::Builtin),
         };
 
-        let task = socket.as_ref().map(|socket| {
-            tokio::spawn(run(
-                cfg,
-                socket.clone(),
-                advert,
-                out,
-                pending.clone(),
-                extra_targets.clone(),
-                refresh_rx,
-            ))
-        });
+        let task = socket
+            .as_ref()
+            .map(|socket| tokio::spawn(run(cfg, socket.clone(), advert, out, pending.clone(), refresh_rx)));
         Ok(Self {
             socket: Mutex::new(socket),
             pending,
@@ -258,7 +249,7 @@ impl Discovery {
 
     /// 向 `target`（发现端口）发送查询，等待回复。
     pub async fn query(&self, target: SocketAddr, timeout: Duration) -> Option<(Advert, SocketAddr)> {
-        if !target.is_ipv4() {
+        if !target.is_ipv4() || !crate::lan::allows(target) {
             return None;
         }
         let nonce: [u8; 16] = rand::random();
@@ -272,6 +263,9 @@ impl Discovery {
                 // Borrow the socket only for each poll. A concurrent stop can
                 // revoke it without waiting for this caller-owned query future.
                 let send = std::future::poll_fn(|cx| {
+                    if !crate::lan::allows(target) {
+                        return std::task::Poll::Ready(None);
+                    }
                     let socket = self.socket.lock().unwrap_or_else(|e| e.into_inner());
                     match socket.as_ref() {
                         Some(socket) => socket.poll_send_to(cx, &pkt, target).map(Some),
@@ -324,7 +318,6 @@ async fn run(
     advert: watch::Receiver<Advert>,
     out: mpsc::Sender<Sighting>,
     pending: Pending,
-    extra: Arc<Mutex<Vec<SocketAddr>>>,
     mut refresh: mpsc::UnboundedReceiver<()>,
 ) {
     let mut tick = tokio::time::interval(cfg.beacon_interval);
@@ -332,8 +325,8 @@ async fn run(
     let mut buf = vec![0u8; 2048];
     loop {
         tokio::select! {
-            _ = tick.tick() => send_beacons(&cfg, &socket, &advert, &extra).await,
-            Some(()) = refresh.recv() => send_beacons(&cfg, &socket, &advert, &extra).await,
+            _ = tick.tick() => send_beacons(&cfg, &socket, &advert).await,
+            Some(()) = refresh.recv() => send_beacons(&cfg, &socket, &advert).await,
             r = socket.recv_from(&mut buf) => {
                 let Ok((n, from)) = r else {
                     // Windows 上对端端口不可达会让 recv_from 报错（WSAECONNRESET），忽略即可。
@@ -345,39 +338,22 @@ async fn run(
     }
 }
 
-async fn send_beacons(
-    cfg: &DiscoveryConfig,
-    socket: &UdpSocket,
-    advert: &watch::Receiver<Advert>,
-    extra: &Mutex<Vec<SocketAddr>>,
-) {
+async fn send_beacons(cfg: &DiscoveryConfig, socket: &UdpSocket, advert: &watch::Receiver<Advert>) {
+    if !cfg.beacon {
+        return;
+    }
     let Ok(pkt) = encode_beacon(&advert.borrow()) else {
         return;
     };
-    let mut targets: Vec<SocketAddr> = extra.lock().unwrap_or_else(|e| e.into_inner()).clone();
-    if cfg.beacon {
-        let bcasts: Vec<Ipv4Addr> = if cfg.bind_ip.is_unspecified() {
-            local_ipv4().into_iter().filter_map(|(_, b)| b).collect()
-        } else if let IpAddr::V4(ip) = cfg.bind_ip {
-            local_ipv4()
-                .into_iter()
-                .filter(|(a, _)| *a == ip)
-                .filter_map(|(_, b)| b)
-                .collect()
-        } else {
-            Vec::new()
-        };
-        for b in bcasts {
-            for p in &cfg.beacon_ports {
-                targets.push(SocketAddr::new(IpAddr::V4(b), *p));
+    let mut broadcasts = crate::lan::broadcasts(cfg.bind_ip);
+    broadcasts.sort_unstable();
+    broadcasts.dedup();
+    for ip in broadcasts {
+        for &port in &cfg.beacon_ports {
+            let target = SocketAddr::new(IpAddr::V4(ip), port);
+            if let Err(error) = socket.send_to(&pkt, target).await {
+                tracing::trace!(%target, %error, "discovery broadcast failed");
             }
-        }
-    }
-    targets.sort();
-    targets.dedup();
-    for t in targets {
-        if let Err(e) = socket.send_to(&pkt, t).await {
-            tracing::trace!("信标发送到 {t} 失败：{e}");
         }
     }
 }
@@ -390,7 +366,7 @@ async fn handle_packet(
     out: &mpsc::Sender<Sighting>,
     pending: &Pending,
 ) {
-    if !from.is_ipv4() {
+    if !from.is_ipv4() || !crate::lan::allows(from) {
         return;
     }
     let Some(p) = decode(b) else {

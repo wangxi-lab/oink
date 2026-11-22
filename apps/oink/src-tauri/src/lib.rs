@@ -20,8 +20,6 @@ mod local_drop_windows;
 mod menu_icons_windows;
 pub mod service;
 pub mod shell_policy;
-#[cfg(any(target_os = "macos", windows, test))]
-mod sponsor;
 #[cfg(any(windows, test))]
 mod tray_windows;
 #[cfg(any(target_os = "macos", test))]

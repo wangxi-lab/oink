@@ -22,6 +22,7 @@ impl Socket {
         wake: Arc<tokio::sync::Notify>,
         errors: crate::qos::SendErrors,
     ) -> io::Result<Arc<Self>> {
+        crate::lan::require(address)?;
         let socket = std::net::UdpSocket::bind((std::net::Ipv4Addr::UNSPECIFIED, 0))?;
         socket.connect(address)?;
         socket.set_nonblocking(true)?;

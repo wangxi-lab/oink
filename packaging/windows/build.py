@@ -211,7 +211,7 @@ def main():
         package_notes.write(notes_file, package_notes.generate(ROOT, a.build, a.source_commit, a.output.parent.parent))
     values = {'UpdateNotesFile': str(notes_file), 'LicenseRtf': str(license_rtf),
               'DialogBmp': str(ROOT / 'packaging/windows/installer-background.bmp'),
-              'BannerBmp': str(ROOT / 'packaging/windows/installer-banner.bmp'), 'ProductName': I['name'], 'Manufacturer': I['publisher'], 'ProductVersion': msi_version,
+              'BannerBmp': str(ROOT / 'packaging/windows/installer-banner.bmp'), 'ProductName': I['name'] + ' LAN Only', 'Manufacturer': I['publisher'], 'ProductVersion': msi_version,
               'SourceTreeSha256': a.source_tree_sha256, 'ProductCode': product_code, 'UpgradeCode': w['upgrade_code'],
               'MinimumWindowsBuild': str(I['minimumWindowsBuild']),
               'InstallDirectory': w['install_directory'], 'ServiceName': w['service_name'],

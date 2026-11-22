@@ -26,7 +26,7 @@ export function StartupPanel({ raw }: { raw: string }) {
   return <div className="boot-wrap"><div className="boot-content">
     <EmptyState className="boot" data-tone={kind} icon={kind === 'waiting' ? <Spinner/> : kind === 'rdp' ? <PauseGlyph/> : <Icon name={kind === 'session' ? 'user' : kind === 'update' ? 'refresh' : 'alert'}/>}
       title={zh ? titleZh : titleEn} description={zh ? descZh : descEn} actions={<>
-        {download && <Button variant="accent" onClick={() => run(() => shell.openUrl('https://github.com/oinkvm/oink/releases/latest'))}><Icon name="download"/>{zh ? '下载安装包' : 'Download installer'}</Button>}
+        {download && <span>{zh ? '请使用本地 MSI 安装包修复' : 'Repair using the local MSI installer'}</span>}
         {retry && <Button variant={download ? undefined : 'accent'} onClick={() => run(() => transport.shell('startup_retry'))}>{zh ? '重试' : 'Retry'}</Button>}
         {(kind === 'disabled' || kind === 'stopped') && <Button onClick={() => run(() => transport.shell('startup_open_services'))}>{zh ? '打开「服务」' : 'Open Services'}</Button>}
       </>}/>

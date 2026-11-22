@@ -238,6 +238,9 @@ impl AddressProbeError {
     // Quinn retries UDP send errors until its handshake timeout. Check the local
     // route without sending traffic so an absent interface or route stays typed.
     pub(crate) fn check_route(address: std::net::SocketAddr) -> Result<(), Self> {
+        if !crate::lan::allows(address) {
+            return Err(Self::InvalidAddress);
+        }
         if !address.ip().is_loopback() && crate::discovery::local_ipv4().is_empty() {
             return Err(Self::NoNetworkInterface);
         }

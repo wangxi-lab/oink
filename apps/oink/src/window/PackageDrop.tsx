@@ -20,7 +20,7 @@ export function packageDragAllowed(paths:readonly string[]|null,platform:Platfor
 export function usePackageDropReceiver(platform:Platform,receive:(path:string)=>void) {
   const receiver=useRef(receive);receiver.current=receive;
   useEffect(()=>{
-    if(!inTauri)return;
+    if(!inTauri||platform==='win')return;
     let disposed=false;const stops:(()=>void)[]=[];
     const drop=(paths:readonly string[])=>{setPackageDrag(false);const path=localPackagePath(paths,platform);if(path)receiver.current(path);};
     void import('@tauri-apps/api/event').then(async({listen})=>{

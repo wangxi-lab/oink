@@ -73,8 +73,11 @@ export function Onboarding({ platform, pairing, perms, onGrant, onOpenSettings, 
   connectedRef.current = connected;
 
   // Windows has no permissions to grant; launch at login lives in Settings only.
-  const nextOf = (s: OnboardingStep): OnboardingStep =>
-    s === 'welcome' ? (platform === 'mac' ? 'perms' : 'telemetry') : s === 'telemetry' ? 'connect' : 'telemetry';
+  const nextOf = (s: OnboardingStep): OnboardingStep => {
+    if (s === 'welcome' && platform === 'mac') return 'perms';
+    if (s !== 'telemetry' && preferences.report?.configured) return 'telemetry';
+    return 'connect';
+  };
   const next = () => {
     if (exiting) return;
     const to = nextOf(step);

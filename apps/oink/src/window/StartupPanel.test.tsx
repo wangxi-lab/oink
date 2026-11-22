@@ -25,7 +25,7 @@ for (const zh of [true,false]) {
     expect(screen.getByRole('heading',{name:zh?cn:en})).toBeTruthy();
     expect(container.querySelector('.ok-empty__desc')?.textContent).not.toMatch(/[。.]$/);
     expect(Boolean(screen.queryByText(zh?'重试':'Retry'))).toBe(retry);
-    expect(Boolean(screen.queryByText(zh?'下载安装包':'Download installer'))).toBe(download);
+    expect(Boolean(screen.queryByText(zh?'请使用本地 MSI 安装包修复':'Repair using the local MSI installer'))).toBe(download);
     expect(container.querySelector('pre')).toBeNull();
     fireEvent.click(screen.getByText(zh?'技术详情':'Technical details'));
     expect((await screen.findByText(/SCM sample/)).textContent).toContain(raw);
@@ -47,6 +47,6 @@ it('keeps recovery actions on the shell while the backend is unavailable', async
   expect(call).toHaveBeenCalledWith('startup_open_logs');
   await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('os error 2')));
   rerender(<StartupPanel raw="oink_update_in_progress"/>);
-  fireEvent.click(screen.getByText('Download installer'));
-  expect(call).toHaveBeenCalledWith('shell_open_url', {url:'https://github.com/oinkvm/oink/releases/latest'});
+  expect(screen.getByText('Repair using the local MSI installer')).toBeTruthy();
+  expect(call.mock.calls.some(([command]) => command === 'shell_open_url')).toBe(false);
 });

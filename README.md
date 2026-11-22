@@ -1,3 +1,5 @@
+> **Oink LAN Only** is a modified distribution of upstream Oink for Windows x64. See the [privacy notice](PRIVACY.md) and [security review](SECURITY-REVIEW.md).
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.png">

@@ -295,10 +295,12 @@ def verify_msi(manifest, extracted, identity, tables):
         # WiX's decompiler emits the resolved formatted Program field, rather
         # than the authoring-time File shortcut.
         if (rule.get('Program') != f'[#{ui_id}]' or rule.get('Profile') != 'all' or
-                rule.get('Scope') != 'any' or rule.get('Outbound', 'no') != 'no'):
-            raise RuntimeError('MSI firewall rules must target oink.exe on all profiles')
-        if rule.get('Protocol') == 'tcp' and (rule.get('Name') != 'Oink - Bulk transfer (TCP)' or
-                rule.get('Description') != 'Oink - Bulk transfer (TCP)'):
+                rule.get('Scope') != 'localSubnet' or rule.get('Outbound', 'no') != 'no'):
+            raise RuntimeError('MSI firewall rules must target oink.exe and be scoped to the local subnet')
+        rule_names = {'udp': 'Oink - Discovery and QUIC (UDP)', 'tcp': 'Oink - Bulk transfer (TCP)'}
+        if rule.get('Name') != rule_names[rule.get('Protocol')]:
+            raise RuntimeError('MSI firewall rule identity must be retained across upgrades')
+        if rule.get('Protocol') == 'tcp' and rule.get('Description') != rule_names['tcp']:
             raise RuntimeError('MSI TCP rule is not the bulk-transfer rule')
     permissions = tables.get('MsiLockPermissionsEx', [])
     folders = tables.get('CreateFolder', [])

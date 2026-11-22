@@ -5,7 +5,6 @@ import type { Platform, StageSize } from './DesktopWindow';
 import { shell } from '../api/client';
 import { inTauri } from '../api/transport';
 import { tr } from '../i18n';
-const REPO = 'https://github.com/oinkvm/oink';
 interface LicenseComponent {
     id: string;
     name: string;
@@ -26,7 +25,6 @@ interface Inventory {
     schemaVersion: 1;
     components: LicenseComponent[];
 }
-const GITHUB = 'M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z';
 function Wordmark() {
     return (<svg className="about__word" viewBox="-1 -1 183 67" role="img" aria-label="Oink">
       <g fill="none" stroke="currentColor" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round">
@@ -149,8 +147,7 @@ export function AboutWindow({ platform, open, front, version, build, stage, onFr
     </div>
     {page === 'main' && <Doodle />}
     {page === 'main' ? <div className="about__main">
-      <AppIcon platform={platform} size={76}/><Wordmark /><p className="about__ver">{build==null?tr('版本 {0}', version):tr('版本 {0} ({1})', version, build)}</p>
-      <Button className="about__repo" variant="ghost" size="sm" onClick={() => { void shell.openUrl(REPO); }} leading={<svg className="about__gh" viewBox="0 0 16 16" aria-hidden><path d={GITHUB}/></svg>}>github.com/oinkvm/oink</Button>
+      <AppIcon platform={platform} size={76}/><Wordmark /><p>LAN Only · Modified from upstream Oink</p><p className="about__ver">{build==null?tr('版本 {0}', version):tr('版本 {0} ({1})', version, build)}</p>
       <Button className="about__oss" variant="ghost" size="sm" trailing={<Icon name="chevron-right"/>} onClick={() => setPage('licenses')}>{tr('开源软件引用')}</Button>
       <Button variant="ghost" size="sm" onClick={() => { const generation=++termsGeneration.current; setPage('licenses'); setSelected('product'); setTerms(''); setError(false); void Promise.all(['LICENSE', 'LICENSE-ADDITIONAL-TERMS.md'].map(p => shell.attribution(p))).then(texts => {if(termsGeneration.current===generation)setTerms(texts.join('\n\n'));}).catch(() => {if(termsGeneration.current===generation)setError(true);}); }}>GPL-3.0 · {tr('附加条款')}</Button>
       <p className="about__copy">© 2026 Hachiwii</p>
@@ -161,7 +158,6 @@ export function AboutWindow({ platform, open, front, version, build, stage, onFr
         <ul>{inventory?.components.map(l => <li key={l.id}>
           <button type="button" className="about__license-link ok-focusable" onClick={() => { void showTerms(l); }}><span className="about__lic-name">{l.name}<span className="about__lic-ver">{l.version}</span></span><span className="about__lic-note">{l.copyright.join(' · ') || l.name} · {l.scope.join(', ')}</span></button>
           <Tag className="about__lic-tag" size="sm">{l.licenseExpression}</Tag>
-          {l.repository && /^https?:\/\//.test(l.repository) && <Button size="sm" variant="ghost" iconOnly aria-label={tr('项目主页')} onClick={() => { void shell.openUrl(l.repository!); }}><Icon name="external"/></Button>}
         </li>)}</ul></>}
     </div>}
   </div>;

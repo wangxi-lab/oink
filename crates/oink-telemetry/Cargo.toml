@@ -14,8 +14,10 @@ serde_json.workspace = true
 getrandom = "0.3"
 tempfile = "3"
 fs2 = "0.4"
-reqwest = { version = "0.12", default-features = false, features = ["native-tls", "system-proxy"] }
 tokio.workspace = true
+
+[dev-dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["native-tls", "system-proxy"] }
 
 [target.'cfg(windows)'.dependencies]
 oink-foundation.workspace = true

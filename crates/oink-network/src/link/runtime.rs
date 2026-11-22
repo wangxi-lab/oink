@@ -2164,6 +2164,9 @@ impl Network {
                     let Some(address) = dial.addresses.pop_front() else {
                         break;
                     };
+                    if !crate::lan::allows(address) {
+                        continue;
+                    }
                     let id = ConnectionId {
                         initiator_boot: self.core.boot,
                         random: rand::random(),

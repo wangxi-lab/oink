@@ -65,8 +65,9 @@ class MsiContent(unittest.TestCase):
                         ('ui_rust', extracted / 'File/ui')])
         ET.SubElement(xml, 'ServiceInstall', Name='OinkInput', Account='LocalSystem', Start='auto')
         for protocol in ('udp', 'tcp'):
-            ET.SubElement(xml, 'FirewallException', Protocol=protocol, Program='[#ui]', Profile='all', Scope='any',
-                          Name='Oink - Bulk transfer (TCP)', Description='Oink - Bulk transfer (TCP)')
+            ET.SubElement(xml, 'FirewallException', Protocol=protocol, Program='[#ui]', Profile='all', Scope='localSubnet',
+                          Name=('Oink - Discovery and QUIC (UDP)' if protocol == 'udp' else 'Oink - Bulk transfer (TCP)'),
+                          Description='Oink - Bulk transfer (TCP)')
         acl = {'MsiLockPermissionsEx': [
             ['root-acl', 'INSTALLFOLDER', 'CreateFolder', 'O:BAG:BAD:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;GRGX;;;BU)', ''],
             ['maintenance-acl', 'MAINTENANCEFOLDER', 'CreateFolder', 'O:BAG:BAD:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;;GRGX;;;BU)', '']],

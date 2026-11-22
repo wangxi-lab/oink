@@ -156,6 +156,7 @@ impl quinn::AsyncUdpSocket for DestinationSocket {
         self.0.clone().create_io_poller()
     }
     fn try_send(&self, transmit: &quinn::udp::Transmit<'_>) -> std::io::Result<()> {
+        crate::lan::require(transmit.destination)?;
         self.0.try_send(transmit).map_err(|e| {
             if let Some(errors) = &self.1 {
                 errors
@@ -172,7 +173,15 @@ impl quinn::AsyncUdpSocket for DestinationSocket {
         bufs: &mut [std::io::IoSliceMut<'_>],
         meta: &mut [quinn::udp::RecvMeta],
     ) -> std::task::Poll<std::io::Result<usize>> {
-        self.0.poll_recv(cx, bufs, meta)
+        self.0.poll_recv(cx, bufs, meta).map_ok(|received| {
+            for packet in &mut meta[..received] {
+                if !crate::lan::allows(packet.addr) {
+                    // Quinn skips empty buffers and still accounts for the receive.
+                    packet.len = 0;
+                }
+            }
+            received
+        })
     }
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
         self.0.local_addr()
@@ -308,6 +317,21 @@ mod send_failure_tests {
             unreachable!("send-only fixture")
         }
     }
+    #[test]
+    fn public_destination_is_denied_before_touching_the_transport() {
+        let socket = observe_udp_socket(Arc::new(FailingSend), SendErrors::default());
+        let error = socket
+            .try_send(&quinn::udp::Transmit {
+                destination: "192.0.2.50:47470".parse().unwrap(),
+                contents: b"packet",
+                ecn: None,
+                segment_size: None,
+                src_ip: None,
+            })
+            .unwrap_err();
+        assert_eq!(error.kind(), std::io::ErrorKind::PermissionDenied);
+    }
+
     #[test]
     fn observed_socket_preserves_terminal_error_and_records_destination() {
         let failures = SendErrors::default();

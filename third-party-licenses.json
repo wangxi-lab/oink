@@ -2165,7 +2165,8 @@
       "modified": false,
       "scope": [
         "build",
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -2199,7 +2200,8 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -2233,7 +2235,8 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -4379,14 +4382,14 @@
       ]
     },
     {
-      "id": "cargo:form_urlencoded@1.2.2",
+      "id": "cargo:form_urlencoded@1.2.3",
       "name": "form_urlencoded",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "ecosystem": "cargo",
       "repository": "https://github.com/servo/rust-url",
       "source": {
-        "url": "https://crates.io/api/v1/crates/form_urlencoded/1.2.2/download",
-        "integrity": "sha256:cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
+        "url": "https://crates.io/api/v1/crates/form_urlencoded/1.2.3/download",
+        "integrity": "sha256:afa489199eaffb1211795df1c6236ce1ad0d41a6fa45250add73e3b02420f06e"
       },
       "licenseExpression": "MIT OR Apache-2.0",
       "selectedLicense": "MIT",
@@ -10694,14 +10697,14 @@
       ]
     },
     {
-      "id": "cargo:rustix@1.1.5",
+      "id": "cargo:rustix@1.1.6",
       "name": "rustix",
-      "version": "1.1.5",
+      "version": "1.1.6",
       "ecosystem": "cargo",
       "repository": "https://github.com/bytecodealliance/rustix",
       "source": {
-        "url": "https://crates.io/api/v1/crates/rustix/1.1.5/download",
-        "integrity": "sha256:891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d"
+        "url": "https://crates.io/api/v1/crates/rustix/1.1.6/download",
+        "integrity": "sha256:e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa"
       },
       "licenseExpression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
       "selectedLicense": "MIT",
@@ -11198,7 +11201,8 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -11232,7 +11236,8 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -12938,7 +12943,8 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -12972,7 +12978,8 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "runtime"
+        "runtime",
+        "test"
       ],
       "platforms": [
         "macos-arm64",
@@ -14671,14 +14678,14 @@
       ]
     },
     {
-      "id": "cargo:url@2.5.8",
+      "id": "cargo:url@2.5.9",
       "name": "url",
-      "version": "2.5.8",
+      "version": "2.5.9",
       "ecosystem": "cargo",
       "repository": "https://github.com/servo/rust-url",
       "source": {
-        "url": "https://crates.io/api/v1/crates/url/2.5.8/download",
-        "integrity": "sha256:ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed"
+        "url": "https://crates.io/api/v1/crates/url/2.5.9/download",
+        "integrity": "sha256:f00cd2407bb42c0ef17be88d4cf020f5cceffd121665bac9b8b9493a369b3b1a"
       },
       "licenseExpression": "MIT OR Apache-2.0",
       "selectedLicense": "MIT",
@@ -15778,6 +15785,43 @@
       ]
     },
     {
+      "id": "cargo:windows-sys@0.52.0",
+      "name": "windows-sys",
+      "version": "0.52.0",
+      "ecosystem": "cargo",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "source": {
+        "url": "https://crates.io/api/v1/crates/windows-sys/0.52.0/download",
+        "integrity": "sha256:282be5f36a8ce781fad8c8ae18fa3f9beff57ec1b52cb3de0789201425d9a33d"
+      },
+      "licenseExpression": "MIT OR Apache-2.0",
+      "selectedLicense": "MIT",
+      "modified": false,
+      "scope": [
+        "build",
+        "runtime",
+        "test"
+      ],
+      "platforms": [
+        "windows-x64"
+      ],
+      "copyright": [],
+      "licenseFiles": [
+        {
+          "path": "licenses/texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5"
+        },
+        {
+          "path": "licenses/texts/c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b.txt",
+          "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b"
+        },
+        {
+          "path": "licenses/texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
+          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+        }
+      ]
+    },
+    {
       "id": "cargo:windows-sys@0.59.0",
       "name": "windows-sys",
       "version": "0.59.0",
@@ -15815,6 +15859,42 @@
       ]
     },
     {
+      "id": "cargo:windows-sys@0.60.2",
+      "name": "windows-sys",
+      "version": "0.60.2",
+      "ecosystem": "cargo",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "source": {
+        "url": "https://crates.io/api/v1/crates/windows-sys/0.60.2/download",
+        "integrity": "sha256:f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
+      },
+      "licenseExpression": "MIT OR Apache-2.0",
+      "selectedLicense": "MIT",
+      "modified": false,
+      "scope": [
+        "runtime",
+        "test"
+      ],
+      "platforms": [
+        "windows-x64"
+      ],
+      "copyright": [],
+      "licenseFiles": [
+        {
+          "path": "licenses/texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5"
+        },
+        {
+          "path": "licenses/texts/c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b.txt",
+          "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b"
+        },
+        {
+          "path": "licenses/texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
+          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+        }
+      ]
+    },
+    {
       "id": "cargo:windows-sys@0.61.2",
       "name": "windows-sys",
       "version": "0.61.2",
@@ -15828,7 +15908,6 @@
       "selectedLicense": "MIT",
       "modified": false,
       "scope": [
-        "build",
         "runtime",
         "test"
       ],
@@ -15866,6 +15945,42 @@
       "modified": false,
       "scope": [
         "build",
+        "runtime",
+        "test"
+      ],
+      "platforms": [
+        "windows-x64"
+      ],
+      "copyright": [],
+      "licenseFiles": [
+        {
+          "path": "licenses/texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5"
+        },
+        {
+          "path": "licenses/texts/c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b.txt",
+          "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b"
+        },
+        {
+          "path": "licenses/texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
+          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+        }
+      ]
+    },
+    {
+      "id": "cargo:windows-targets@0.53.5",
+      "name": "windows-targets",
+      "version": "0.53.5",
+      "ecosystem": "cargo",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "source": {
+        "url": "https://crates.io/api/v1/crates/windows-targets/0.53.5/download",
+        "integrity": "sha256:4945f9f551b88e0d65f3db0bc25c33b8acea4d9e41163edf90dcd0b19f9069f3"
+      },
+      "licenseExpression": "MIT OR Apache-2.0",
+      "selectedLicense": "MIT",
+      "modified": false,
+      "scope": [
         "runtime",
         "test"
       ],
@@ -16010,6 +16125,42 @@
       "modified": false,
       "scope": [
         "build",
+        "runtime",
+        "test"
+      ],
+      "platforms": [
+        "windows-x64"
+      ],
+      "copyright": [],
+      "licenseFiles": [
+        {
+          "path": "licenses/texts/b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5.txt",
+          "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5"
+        },
+        {
+          "path": "licenses/texts/c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b.txt",
+          "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b"
+        },
+        {
+          "path": "licenses/texts/c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383.txt",
+          "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+        }
+      ]
+    },
+    {
+      "id": "cargo:windows_x86_64_msvc@0.53.1",
+      "name": "windows_x86_64_msvc",
+      "version": "0.53.1",
+      "ecosystem": "cargo",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "source": {
+        "url": "https://crates.io/api/v1/crates/windows_x86_64_msvc/0.53.1/download",
+        "integrity": "sha256:d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
+      },
+      "licenseExpression": "MIT OR Apache-2.0",
+      "selectedLicense": "MIT",
+      "modified": false,
+      "scope": [
         "runtime",
         "test"
       ],

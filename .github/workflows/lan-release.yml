@@ -1,0 +1,113 @@
+name: LAN Only Windows release
+
+on:
+  push:
+    tags:
+      - 'lan-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lan-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    if: github.repository == 'wangxi-lab/oink'
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      CARGO_BUILD_JOBS: '4'
+      CARGO_INCREMENTAL: '0'
+      RUST_TEST_THREADS: '4'
+      CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
+        with:
+          toolchain: '1.99.0'
+          targets: x86_64-pc-windows-msvc
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '24.14.1'
+          cache: npm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.14.6'
+      - name: Validate tag and install pinned build tools
+        shell: bash
+        run: |
+          version=$(node -p "require('./apps/oink/package.json').version")
+          prefix="lan-v${version}-"
+          [[ "$GITHUB_REF_NAME" == "$prefix"* ]]
+          sequence=${GITHUB_REF_NAME#"$prefix"}
+          [[ "$sequence" =~ ^[1-9][0-9]{0,2}$ ]]
+          echo "OINK_LAN_RELEASE_SEQUENCE=$sequence" >> "$GITHUB_ENV"
+          npm install --global npm@11.11.0
+          cargo install cargo-about --version 0.9.2 --locked --features cli
+      - name: Test LAN restrictions and frontend
+        shell: bash
+        run: |
+          cargo test --locked -p oink-network --lib
+          cargo test --locked -p oink-update --features http
+          npm ci
+          npm audit --omit=dev
+          npm run -w apps/oink test
+      - name: Build and inspect Windows x64 MSI
+        shell: pwsh
+        run: |
+          python build-support/package.py --public-version --platform windows --sequence $env:OINK_LAN_RELEASE_SEQUENCE --output-root "$env:RUNNER_TEMP/packages" --tool-cache "$env:RUNNER_TEMP/package-tools"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $packages = @(Get-ChildItem "$env:RUNNER_TEMP/packages" -Recurse -Filter '*-windows-x64.msi')
+          if ($packages.Count -ne 1) { throw "Expected exactly one Windows x64 MSI" }
+          $stage = New-Item -ItemType Directory -Path "$env:RUNNER_TEMP/distribution"
+          $name = $packages[0].Name -replace '^Oink-', 'Oink-LAN-Only-'
+          $msi = Copy-Item $packages[0].FullName (Join-Path $stage.FullName $name) -PassThru
+          $hash = (Get-FileHash -Algorithm SHA256 $msi.FullName).Hash.ToLowerInvariant()
+          [IO.File]::WriteAllText("$($stage.FullName)/SHA256SUMS", "$hash  $($msi.Name)`n")
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-x64-lan-only
+          path: ${{ runner.temp }}/distribution/*
+          if-no-files-found: error
+      - name: Scan package and embedded binaries
+        shell: pwsh
+        run: |
+          $scanner = (Get-Command "$env:ProgramFiles/Windows Defender/MpCmdRun.exe" -ErrorAction Stop).Source
+          Get-MpComputerStatus | Select-Object AMProductVersion, AntivirusSignatureVersion, AntivirusSignatureLastUpdated
+          & $scanner -Scan -ScanType 3 -File "$env:RUNNER_TEMP/distribution" -DisableRemediation
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $payload = @(Get-ChildItem "$env:RUNNER_TEMP/packages" -Recurse -Directory -Filter payload)
+          if ($payload.Count -ne 1) { throw "Expected exactly one payload directory" }
+          & $scanner -Scan -ScanType 3 -File $payload[0].FullName -DisableRemediation
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+  publish:
+    needs: windows
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: windows-x64-lan-only
+          path: distribution
+      - name: Publish verified release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: distribution
+        run: |
+          sha256sum --strict --check SHA256SUMS
+          cat > release-notes.md <<'NOTES'
+          Oink LAN Only is a modified build of upstream Oink for Windows x64.
+          It retains keyboard/mouse, clipboard and file sharing on the local IPv4 subnet.
+          Crash reporting, online updates and sponsor downloads are disabled.
+
+          The MSI is unsigned and requires an existing WebView2 Runtime.
+          Install only with your organization's approval. Review SECURITY-REVIEW.md in the source tag for the runtime boundary.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "Oink LAN Only ${GITHUB_REF_NAME#lan-} (Windows x64)" --notes-file release-notes.md ./*.msi ./SHA256SUMS
